@@ -1,13 +1,18 @@
 import cron from "cron";
-import https from "https";
 
 const job = new cron.CronJob("*/14 * * * *", function () {
-  https
-    .get(process.env.API_URL, (res) => {
-      if (res.statusCode === 200) console.log("GET request sent successfully");
-      else console.log("GET request failed", res.statusCode);
+  fetch(process.env.API_URL)
+    .then((res) => {
+      console.log("Pinging URL:", process.env.API_URL);
+      if (res.ok) {
+        console.log("GET request sent successfully");
+      } else {
+        console.log("GET request failed", res.status);
+      }
     })
-    .on("error", (e) => console.error("Error while sending request", e));
+    .catch((error) => {
+      console.error("Error while sending request", error);
+    });
 });
 
 export default job;
