@@ -1,4 +1,5 @@
 import Cat from "../models/Cat.js";
+import Visit from "../models/Visit.js";
 
 /**
  * @desc    Get all cats
@@ -8,7 +9,25 @@ import Cat from "../models/Cat.js";
 export const getCats = async (req, res) => {
   try {
     const cats = await Cat.find().sort({ createdAt: -1 });
-    res.status(200).json(cats);
+
+    // Calculate dynamic weight for each cat based on last 5 GLOBAL visits
+    const catsWithAvgWeight = await Promise.all(cats.map(async (cat) => {
+      // For single-cat mode, we pull the last 5 visits from the entire collection
+      const lastVisits = await Visit.find()
+        .sort({ entryTime: -1 })
+        .limit(5);
+
+      if (lastVisits.length > 0) {
+        const totalWeight = lastVisits.reduce((sum, v) => sum + v.weightIn, 0);
+        const avgWeight = totalWeight / lastVisits.length;
+        // Return cat object with computed weight (converts mongoose doc to object)
+        return { ...cat.toObject(), currentWeight: parseFloat(avgWeight.toFixed(2)) };
+      }
+
+      return cat;
+    }));
+
+    res.status(200).json(catsWithAvgWeight);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch cats", error: error.message });
   }
@@ -38,27 +57,21 @@ export const getCatById = async (req, res) => {
  */
 export const createCat = async (req, res) => {
   try {
-    const { name, rfidTag, breed, age, gender, color, currentWeight, owner } = req.body;
+    const { name, breed, age, gender, color, currentWeight, owner } = req.body;
 
-    // Prevent duplicate RFID tags
-    const existingCat = await Cat.findOne({ rfidTag });
-    if (existingCat) {
-      return res.status(400).json({ message: "RFID tag already exists" });
-    }
 
-    const newCat = new Cat({
+
+    // Simplified: No user ID from request, just use body or default
+    const cat = await Cat.create({
       name,
-      rfidTag,
       breed,
       age,
       gender,
       color,
       currentWeight,
-      owner,
+      owner: req.body.owner || "Me",
     });
-
-    const savedCat = await newCat.save();
-    res.status(201).json(savedCat);
+    res.status(201).json(cat);
   } catch (error) {
     res.status(500).json({ message: "Failed to create cat", error: error.message });
   }
@@ -76,7 +89,10 @@ export const updateCat = async (req, res) => {
       return res.status(404).json({ message: "Cat not found" });
     }
 
-    const updatedCat = await Cat.findByIdAndUpdate(req.params.id, req.body, {
+    // Prevent manual weight override
+    const { currentWeight, ...updateData } = req.body;
+
+    const updatedCat = await Cat.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });
@@ -103,5 +119,70 @@ export const deleteCat = async (req, res) => {
     res.status(200).json({ message: "Cat removed successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete cat", error: error.message });
+  }
+};
+
+/**
+ * @desc    Update the main (singleton) cat's weight
+ * @route   POST /api/cats/weight
+ * @access  Public
+ */
+export const updateMainCatWeight = async (req, res) => {
+  try {
+    const { weight } = req.body;
+
+    if (weight === undefined || weight === null) {
+      return res.status(400).json({ message: "Weight is required" });
+    }
+
+    // Find the first cat, or create one if none exists
+    let cat = await Cat.findOne();
+
+    if (!cat) {
+      cat = new Cat({
+        name: "My Cat",
+        currentWeight: weight,
+        lastVisit: {
+          entryTime: new Date(),
+          weightIn: weight,
+          weightOut: weight,
+        },
+      });
+    } else {
+      cat.currentWeight = weight;
+      cat.lastVisit = {
+        entryTime: new Date(),
+        weightIn: weight,
+        weightOut: weight, // Simple assumption for now
+      };
+    }
+
+    await cat.save();
+
+    // Create a Visit log
+    await Visit.create({
+      catId: cat._id,
+      entryTime: new Date(),
+      weightIn: weight,
+      weightOut: weight, // Assuming no waste change for now
+    });
+
+    res.status(200).json(cat);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update weight", error: error.message });
+  }
+};
+
+/**
+ * @desc    Get all visits (activity logs)
+ * @route   GET /api/cats/visits
+ * @access  Public
+ */
+export const getVisits = async (req, res) => {
+  try {
+    const visits = await Visit.find().sort({ entryTime: -1 });
+    res.status(200).json(visits);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch visits", error: error.message });
   }
 };

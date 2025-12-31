@@ -5,6 +5,8 @@ import {
   createCat,
   updateCat,
   deleteCat,
+  updateMainCatWeight,
+  getVisits,
 } from "../controllers/catController.js";
 // import { protect } from "../middleware/authMiddleware.js"; // optional if you add user auth later
 
@@ -44,5 +46,19 @@ router.put("/:id", updateCat);
  * @access  Public
  */
 router.delete("/:id", deleteCat);
+
+/**
+ * @route   POST /api/cats/weight
+ * @desc    Update the main cat's weight (for ESP32)
+ * @access  Public
+ */
+router.post("/weight", updateMainCatWeight);
+
+/**
+ * @route   GET /api/cats/visits
+ * @desc    Get all visit logs
+ * @access  Public
+ */
+router.get("/visits", getVisits);
 
 export default router;

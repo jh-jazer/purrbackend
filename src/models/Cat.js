@@ -6,13 +6,9 @@ const catSchema = new mongoose.Schema(
       type: String,
       required: [true, "Cat name is required"],
       trim: true,
+      default: "My Cat",
     },
-    rfidTag: {
-      type: String,
-      required: [true, "RFID tag is required"],
-      unique: true,
-      index: true,
-    },
+
     breed: {
       type: String,
       default: "Unknown",
@@ -37,10 +33,10 @@ const catSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    // Optional: link to the user/owner
+    // Owner name (simplified for personal app)
     owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
+      default: "Me",
     },
     // Optional: record of last visit
     lastVisit: {
