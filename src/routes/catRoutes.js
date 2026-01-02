@@ -19,12 +19,9 @@ const router = express.Router();
  */
 router.get("/", getCats);
 
-/**
- * @route   GET /api/cats/:id
- * @desc    Get a single cat by ID
- * @access  Public
- */
-router.get("/:id", getCatById);
+// Specific routes MUST come before /:id
+router.post("/weight", updateMainCatWeight);
+router.get("/visits", getVisits);
 
 /**
  * @route   POST /api/cats
@@ -32,6 +29,13 @@ router.get("/:id", getCatById);
  * @access  Public (or Private if using auth)
  */
 router.post("/", createCat);
+
+/**
+ * @route   GET /api/cats/:id
+ * @desc    Get a single cat by ID
+ * @access  Public
+ */
+router.get("/:id", getCatById);
 
 /**
  * @route   PUT /api/cats/:id
@@ -46,19 +50,5 @@ router.put("/:id", updateCat);
  * @access  Public
  */
 router.delete("/:id", deleteCat);
-
-/**
- * @route   POST /api/cats/weight
- * @desc    Update the main cat's weight (for ESP32)
- * @access  Public
- */
-router.post("/weight", updateMainCatWeight);
-
-/**
- * @route   GET /api/cats/visits
- * @desc    Get all visit logs
- * @access  Public
- */
-router.get("/visits", getVisits);
 
 export default router;
