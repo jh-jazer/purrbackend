@@ -1,17 +1,16 @@
 import cron from "cron";
 
-const job = new cron.CronJob("*/14 * * * *", function () {
-  fetch(process.env.API_URL)
-    .then((res) => {
-      console.log("Pinging URL:", process.env.API_URL);
-      if (res.ok) {
-        console.log("GET request sent successfully");
-      } else {
-        console.log("GET request failed", res.status);
-      }
+const job = new cron.CronJob("*/1 * * * *", function () {
+  const syncUrl = `${process.env.API_URL}/api/litter/sync`;
+  console.log("⏰ Running Cron: Syncing with Blynk...");
+
+  fetch(syncUrl)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("✅ Sync Complete:", JSON.stringify(data));
     })
     .catch((error) => {
-      console.error("Error while sending request", error);
+      console.error("❌ Cron Sync Error:", error.message);
     });
 });
 

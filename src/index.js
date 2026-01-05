@@ -5,6 +5,7 @@ import job from "./lib/cron.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import catRoutes from "./routes/catRoutes.js";
+import litterRoutes from "./routes/litterRoutes.js";
 
 import { connectDB } from "./lib/db.js";
 
@@ -24,6 +25,7 @@ job.start();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/cats", catRoutes);
+app.use("/api/litter", litterRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is running");
