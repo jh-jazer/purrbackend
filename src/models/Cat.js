@@ -52,6 +52,24 @@ const catSchema = new mongoose.Schema(
       enum: ["Normal", "Underweight", "Overweight", "Needs Attention"],
       default: "Normal",
     },
+    // Health monitoring settings
+    monitoringMode: {
+      type: String,
+      enum: ["strict", "standard", "kitten"],
+      default: "standard",
+    },
+    baselineWeight: {
+      type: Number,
+      default: null,
+    },
+    baselineEstablished: {
+      type: Boolean,
+      default: false,
+    },
+    baselineDate: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true, // adds createdAt and updatedAt

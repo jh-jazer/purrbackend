@@ -9,75 +9,133 @@ const seedVisits = async () => {
             process.exit(1);
         }
 
-        console.log("Connecting to MongoDB...");
+        console.log("🔄 Connecting to MongoDB...");
+        console.log("📍 Using URL:", process.env.MONGODB_URL.substring(0, 30) + "...");
+
         await mongoose.connect(process.env.MONGODB_URL, {
-            serverSelectionTimeoutMS: 5000
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
         });
         console.log("✅ MongoDB Connected");
 
         // 1. Clear existing visits
-        await Visit.deleteMany({});
-        console.log("Cleared old visits.");
+        console.log("🗑️  Clearing old visits...");
+        const deleteResult = await Visit.deleteMany({});
+        console.log(`✅ Deleted ${deleteResult.deletedCount} old visits`);
 
-        // 2. Generate Visits for last 30 days
+        // 2. Generate NORMAL Visits for days 3-30 (baseline data)
+        console.log("🌱 Generating normal baseline data...");
         const visits = [];
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(endDate.getDate() - 30);
 
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            // Randomly determine number of visits per day (2 to 5 visits)
-            const dailyVisits = Math.floor(Math.random() * 4) + 2;
+        // Normal baseline weight: 4.5kg
+        const baselineWeight = 4.5;
+
+        for (let d = new Date(startDate); d <= new Date(endDate.getTime() - 2 * 24 * 60 * 60 * 1000); d.setDate(d.getDate() + 1)) {
+            // Normal: 3-5 visits per day
+            const dailyVisits = Math.floor(Math.random() * 3) + 3;
 
             for (let v = 0; v < dailyVisits; v++) {
                 const visitTime = new Date(d);
-                // Random hour between 6 AM and 11 PM
-                visitTime.setHours(6 + Math.floor(Math.random() * 18), Math.floor(Math.random() * 60));
+                const hour = 5 + Math.floor(Math.random() * 19);
+                const minute = Math.floor(Math.random() * 60);
+                visitTime.setHours(hour, minute);
 
-                // Fluctuate weight slightly around 4.5kg (4.3 to 4.7)
-                let weightIn = 4.3 + (Math.random() * 0.4);
+                // Normal weight fluctuation: ±0.1kg around baseline
+                let weightIn = baselineWeight + (Math.random() * 0.2 - 0.1);
 
-                // 30% chance of waste deposit (weightOut < weightIn)
-                let weightOut = weightIn;
+                // Normal waste distribution
                 let wasteWeight = 0;
+                const rand = Math.random();
 
-                if (Math.random() < 0.3) {
-                    // Waste between 20g and 100g (0.02 - 0.1 kg)
-                    wasteWeight = 0.02 + (Math.random() * 0.08);
-                    // WeightOut should be effectively same as WeightIn for the CAT, but waste is separate record usually?
-                    // Actually usually Visit record implies difference is waste. 
-                    // If model has wasteWeight field, use it. Code showed only weightIn/weightOut.
-                    // Let's assume weightOut is LESS if cat leaves simple, but actually weightIn/Out usually refers to scale reading.
-                    // Scale reading: In = Cat. Out = Cat. Difference is 0 ideally.
-                    // Wait, if cat leaves waste, scale reads Cat + Waste before cat leaves? 
-                    // Let's simplify: Stats usually track Cat Weight.
-                    // Let's add explicit wasteWeight if the model supports it (logs.jsx used it).
+                if (rand < 0.1) {
+                    wasteWeight = 0; // Just checking
+                } else if (rand < 0.7) {
+                    wasteWeight = 30 + (Math.random() * 30); // Pee
+                } else {
+                    wasteWeight = 60 + (Math.random() * 60); // Poop
                 }
 
                 visits.push({
                     entryTime: visitTime,
                     weightIn: parseFloat(weightIn.toFixed(2)),
-                    weightOut: parseFloat(weightOut.toFixed(2)),
-                    wasteWeight: parseFloat((wasteWeight * 1000).toFixed(0)) // Store in Grams? logs.jsx line 117 expects it.
+                    weightOut: parseFloat(weightIn.toFixed(2)),
+                    wasteWeight: Math.round(wasteWeight)
                 });
             }
         }
 
-        // Add some very recent visits for "Today"
-        const today = new Date();
+        console.log(`📊 Generated ${visits.length} normal baseline visits`);
+
+        // 3. Add ALERT-TRIGGERING visits for the last 2 days
+        console.log("⚠️  Adding alert-triggering scenarios...");
+
+        const now = new Date();
+
+        // SCENARIO 1: Urgent Weight Loss (>3% in 48 hours)
+        // 48 hours ago: normal weight
+        const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
         visits.push({
-            entryTime: new Date(today.setHours(today.getHours() - 1)), // 1 hour ago
-            weightIn: 4.5,
+            entryTime: fortyEightHoursAgo,
+            weightIn: 4.5, // Normal baseline
             weightOut: 4.5,
+            wasteWeight: 45
+        });
+
+        // Recent visits with sudden weight drop (4.5kg -> 4.35kg = 3.3% loss)
+        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        visits.push({
+            entryTime: yesterday,
+            weightIn: 4.35, // Sudden drop
+            weightOut: 4.35,
             wasteWeight: 50
         });
 
-        await Visit.insertMany(visits);
-        console.log(`Successfully seeded ${visits.length} varied visits!`);
+        // SCENARIO 2: Critical High Frequency (3+ visits in 1 hour)
+        // Add 4 visits in the last hour
+        const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-        process.exit();
+        for (let i = 0; i < 4; i++) {
+            const visitTime = new Date(oneHourAgo.getTime() + (i * 12 * 60 * 1000)); // Every 12 minutes
+            visits.push({
+                entryTime: visitTime,
+                weightIn: 4.35,
+                weightOut: 4.35,
+                wasteWeight: Math.random() < 0.5 ? 0 : 15 // Mostly small amounts or nothing
+            });
+        }
+
+        console.log(`⚠️  Added ${4 + 2} alert-triggering visits`);
+        console.log(`📊 Total visits: ${visits.length}`);
+        console.log("💾 Inserting into database...");
+
+        await Visit.insertMany(visits);
+        console.log(`✅ Successfully seeded ${visits.length} visits!`);
+
+        // Verify samples
+        const recentSample = await Visit.findOne().sort({ entryTime: -1 });
+        const oldSample = await Visit.findOne().sort({ entryTime: 1 });
+
+        console.log("\n📋 Sample Data:");
+        console.log("Oldest visit:", {
+            entryTime: oldSample.entryTime,
+            weightIn: oldSample.weightIn,
+            wasteWeight: oldSample.wasteWeight
+        });
+        console.log("Most recent visit:", {
+            entryTime: recentSample.entryTime,
+            weightIn: recentSample.weightIn,
+            wasteWeight: recentSample.wasteWeight
+        });
+
+        await mongoose.connection.close();
+        console.log("\n👋 Database connection closed");
+        process.exit(0);
     } catch (error) {
-        console.error("Seeding Error:", error);
+        console.error("❌ Seeding Error:", error.message);
+        console.error("Stack:", error.stack);
         process.exit(1);
     }
 };

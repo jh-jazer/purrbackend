@@ -7,6 +7,7 @@ import {
   deleteCat,
   updateMainCatWeight,
   getVisits,
+  seedVisits,
 } from "../controllers/catController.js";
 // import { protect } from "../middleware/authMiddleware.js"; // optional if you add user auth later
 
@@ -22,6 +23,7 @@ router.get("/", getCats);
 // Specific routes MUST come before /:id
 router.post("/weight", updateMainCatWeight);
 router.get("/visits", getVisits);
+router.post("/seed", seedVisits);
 
 /**
  * @route   POST /api/cats
