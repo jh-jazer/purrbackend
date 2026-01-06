@@ -1,0 +1,24 @@
+--- STARTING SIMULATION ---
+Connecting to MongoDB...
+Connected to MongoDB.
+
+[STEP 1] Setting up 'Cat Inside' state...
+Updated Cat status to: 'Cat Inside'
+
+[STEP 2] Simulating Blynk poll with 'Cat Exit'...
+Logic Check: wasInside=true, isNowExit=true
+>> SUCCESS: Database Write Confirmed!
+{
+  "entryTime": "2026-01-06T06:20:34.700Z",
+  "weightIn": 1.083,
+  "weightOut": 1.083,
+  "wasteWeight": 0,
+  "durationSeconds": 45,
+  "_id": "695ca9df0d539e1d05d5ee90",
+  "createdAt": "2026-01-06T06:21:19.701Z",
+  "updatedAt": "2026-01-06T06:21:19.701Z",
+  "__v": 0
+}
+[STEP 3] System updated Cat status to: 'Cat Exit'
+
+--- SIMULATION COMPLETE ---

@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "seed": "node src/seedVisits.js"
+    "seed": "node src/seedVisits.js",
+    "test:sim": "node src/simulateVisit.js"
   },
   "keywords": [],
   "author": "",

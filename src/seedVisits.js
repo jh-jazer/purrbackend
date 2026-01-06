@@ -46,23 +46,11 @@ const seedVisits = async () => {
                 // Normal weight fluctuation: ±0.1kg around baseline
                 let weightIn = baselineWeight + (Math.random() * 0.2 - 0.1);
 
-                // Normal waste distribution
-                let wasteWeight = 0;
-                const rand = Math.random();
 
-                if (rand < 0.1) {
-                    wasteWeight = 0; // Just checking
-                } else if (rand < 0.7) {
-                    wasteWeight = 30 + (Math.random() * 30); // Pee
-                } else {
-                    wasteWeight = 60 + (Math.random() * 60); // Poop
-                }
 
                 visits.push({
                     entryTime: visitTime,
-                    weightIn: parseFloat(weightIn.toFixed(2)),
-                    weightOut: parseFloat(weightIn.toFixed(2)),
-                    wasteWeight: Math.round(wasteWeight)
+                    weightIn: parseFloat(weightIn.toFixed(2))
                 });
             }
         }
@@ -80,8 +68,6 @@ const seedVisits = async () => {
         visits.push({
             entryTime: fortyEightHoursAgo,
             weightIn: 4.5, // Normal baseline
-            weightOut: 4.5,
-            wasteWeight: 45
         });
 
         // Recent visits with sudden weight drop (4.5kg -> 4.35kg = 3.3% loss)
@@ -89,8 +75,6 @@ const seedVisits = async () => {
         visits.push({
             entryTime: yesterday,
             weightIn: 4.35, // Sudden drop
-            weightOut: 4.35,
-            wasteWeight: 50
         });
 
         // SCENARIO 2: Critical High Frequency (3+ visits in 1 hour)
@@ -101,9 +85,7 @@ const seedVisits = async () => {
             const visitTime = new Date(oneHourAgo.getTime() + (i * 12 * 60 * 1000)); // Every 12 minutes
             visits.push({
                 entryTime: visitTime,
-                weightIn: 4.35,
-                weightOut: 4.35,
-                wasteWeight: Math.random() < 0.5 ? 0 : 15 // Mostly small amounts or nothing
+                weightIn: 4.35
             });
         }
 

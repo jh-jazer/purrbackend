@@ -43,7 +43,6 @@ const catSchema = new mongoose.Schema(
       entryTime: Date,
       exitTime: Date,
       weightIn: Number,
-      weightOut: Number,
       wasteWeight: Number,
     },
     // Optional health flags
@@ -55,8 +54,12 @@ const catSchema = new mongoose.Schema(
     // Health monitoring settings
     monitoringMode: {
       type: String,
-      enum: ["strict", "standard", "kitten"],
       default: "standard",
+    },
+    // Track previous sensor status to detect changes (Inside -> Exit)
+    lastSensorStatus: {
+      type: String,
+      default: "",
     },
     baselineWeight: {
       type: Number,
