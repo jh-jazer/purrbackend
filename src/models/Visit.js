@@ -11,10 +11,7 @@ const visitSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
-        durationSeconds: {
-            type: Number,
-            default: 0,
-        },
+
     },
     {
         timestamps: true,
