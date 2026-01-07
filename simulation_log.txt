@@ -3,22 +3,20 @@ Connecting to MongoDB...
 Connected to MongoDB.
 
 [STEP 1] Setting up 'Cat Inside' state...
-Updated Cat status to: 'Cat Inside'
+Updated Sensor status to: 'Cat Inside'
 
 [STEP 2] Simulating Blynk poll with 'Cat Exit'...
 Logic Check: wasInside=true, isNowExit=true
 >> SUCCESS: Database Write Confirmed!
 {
-  "entryTime": "2026-01-06T06:20:34.700Z",
-  "weightIn": 1.083,
-  "weightOut": 1.083,
-  "wasteWeight": 0,
-  "durationSeconds": 45,
-  "_id": "695ca9df0d539e1d05d5ee90",
-  "createdAt": "2026-01-06T06:21:19.701Z",
-  "updatedAt": "2026-01-06T06:21:19.701Z",
+  "entryTime": "2026-01-06T12:26:56.134Z",
+  "weightIn": 4.5,
+  "durationSeconds": 0,
+  "_id": "695cff903c4700ba7055f944",
+  "createdAt": "2026-01-06T12:26:56.136Z",
+  "updatedAt": "2026-01-06T12:26:56.136Z",
   "__v": 0
 }
-[STEP 3] System updated Cat status to: 'Cat Exit'
+[STEP 3] System updated Sensor status to: 'Cat Exit'
 
 --- SIMULATION COMPLETE ---

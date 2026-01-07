@@ -47,7 +47,7 @@ const runSimulation = async () => {
         boxState.lastSensorStatus = "Cat Inside";
         await boxState.save();
         log(`Updated Sensor status to: '${boxState.lastSensorStatus}'`);
-        log(`Updated Cat status to: '${cat.lastSensorStatus}'`);
+
 
         // 2. SIMULATE
         log("\n[STEP 2] Simulating Blynk poll with 'Cat Exit'...");

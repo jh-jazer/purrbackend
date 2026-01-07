@@ -2,6 +2,21 @@
 import axios from "axios";
 import "dotenv/config";
 
+const checkPin = async (token, pin) => {
+    try {
+        const response = await axios.get(`https://blynk.cloud/external/api/get?token=${token}&${pin}`);
+        console.log(`✅ ${pin}: Found (Value: ${response.data})`);
+    } catch (error) {
+        console.log(`❌ ${pin}: FAILED`);
+        if (error.response) {
+            console.log(`   - Status: ${error.response.status}`);
+            console.log(`   - Message: ${JSON.stringify(error.response.data)}`);
+        } else {
+            console.log(`   - Error: ${error.message}`);
+        }
+    }
+};
+
 const verifyBlynk = async () => {
     const token = process.env.BLYNK_AUTH_TOKEN;
     if (!token) {
@@ -10,31 +25,13 @@ const verifyBlynk = async () => {
     }
 
     console.log(`🔍 Testing connection with Token: ${token.substring(0, 5)}...`);
+    console.log("Checking pins individually...\n");
 
-    try {
-        const [v0, v1, v2, v3] = await Promise.all([
-            axios.get(`https://blynk.cloud/external/api/get?token=${token}&v0`),
-            axios.get(`https://blynk.cloud/external/api/get?token=${token}&v1`),
-            axios.get(`https://blynk.cloud/external/api/get?token=${token}&v2`),
-            axios.get(`https://blynk.cloud/external/api/get?token=${token}&v3`)
-        ]);
+    await checkPin(token, "v0"); // Weight
+    await checkPin(token, "v1"); // Status Text
+    await checkPin(token, "v2"); // Usage Status
 
-        console.log("\n✅ Connection Successful! Received Data:");
-        console.log(`- V0 (Weight): ${v0.data}`);
-        console.log(`- V1 (Status): ${v1.data}`);
-        console.log(`- V2 (Usage):  ${v2.data}`);
-        console.log(`- V3 (Duration): ${v3.data}`);
-
-        console.log("\n✅ The Backend Bridge is ready to use.");
-
-    } catch (error) {
-        console.error("\n❌ Connection Failed!");
-        console.log(error.message);
-        if (error.response) {
-            console.log("Status:", error.response.status);
-            console.log("Data:", error.response.data);
-        }
-    }
+    console.log("\nIf any pin failed with 'Requested pin doesn't exist', that pin is not set up in your Blynk Dashboard.");
 };
 
 verifyBlynk();
